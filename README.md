@@ -1,54 +1,56 @@
-# Chunking Strategies for RAG
+# RAG Basics — Chunking, Embeddings, Vector Databases, and Retrieval Evaluation
 
-This project explores and compares different text chunking strategies used in Retrieval-Augmented Generation (RAG).
+Week 8 Day 1 kata: hands-on fundamentals of Retrieval-Augmented Generation (RAG),
+covering chunking, embeddings, vector search with Qdrant, hybrid search
+limitations, and retrieval evaluation (precision@k / recall@k).
 
-## Chunking Strategies
+Sample document: an excerpt from AISI's public incident report on an AI agent's
+unsanctioned cyber behaviour during a controlled evaluation.
 
-The notebook implements and compares:
-
-* Fixed-size chunking
-* Sentence chunking
-* Paragraph chunking
-* Semantic chunking
-* Recursive chunking
-
-Each strategy is applied to the same document and evaluated using:
-
-* Number of chunks
-* Average token count
-* Standard deviation
-* Minimum chunk size
-* Maximum chunk size
-
-## Results
-
-| Strategy   | # Chunks | Avg Tokens | Std Dev | Min | Max |
-| ---------- | -------: | ---------: | ------: | --: | --: |
-| Fixed-size |       16 |      195.4 |    17.9 | 126 | 200 |
-| Sentence   |       44 |       80.3 |    22.8 |  31 | 123 |
-| Paragraph  |       46 |       58.2 |    27.7 |  17 | 147 |
-| Semantic   |       21 |      127.4 |    94.3 |   1 | 248 |
-| Recursive  |       14 |      220.0 |    45.6 | 105 | 250 |
-
-## Conclusion
-
-Recursive chunking was selected as the most suitable approach for this use case because it provides a good balance between chunk size, document structure, and number of chunks while keeping the process simple.
-
-## Files
-
-* `chunking_strategies.ipynb` — Python implementation and comparison of all chunking strategies.
-* `requirements.txt` — Required Python packages.
-
-## How to Run
-
-Install the required packages:
+## Setup
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+jupyter lab
 ```
 
-Then open and run:
+Open `notebook.ipynb` and run all cells top to bottom.
 
-```text
-chunking_strategies.ipynb
-```
+## Contents
+
+- **Part A — Chunking & embeddings by hand**
+  Fixed-size chunking with and without overlap on a real document; found and
+  verified a real sentence split across chunk boundaries in the no-overlap
+  version, fixed by 15% overlap. Cosine similarity computed manually with NumPy
+  on 3 embedded sentences, confirming semantically similar text scores higher.
+
+- **Part B — Vector database (Qdrant)**
+  Local in-memory Qdrant collection with 10 real sentences embedded via
+  `all-MiniLM-L6-v2`. Query tested and top result verified correct by inspection.
+
+- **Part C — Hybrid search gap & retrieval evaluation**
+  Demonstrated a case where exact-ID search returns a weak semantic match score,
+  illustrating why hybrid (semantic + keyword) search matters. Precision@3 and
+  recall@3 computed by hand across 3 queries on the same small corpus.
+
+## Project structure
+
+- data/sample_document.txt — source text used for chunking
+- notebook.ipynb — all kata work (Parts A, B, C)
+- requirements.txt — direct dependencies
+
+
+## Key findings
+
+- Overlap chunking prevented a sentence describing a key finding from being
+  split across chunk boundaries, no-overlap chunking did split it.
+- Semantically similar sentences scored ~5x higher in cosine similarity than
+  unrelated ones.
+- An exact-ID query technically retrieved the right sentence, but with a
+  notably weak similarity score, showing embeddings alone are a fragile way
+  to handle exact-match lookups.
+- Precision@3 dropped for topically-related queries where multiple sentences
+  shared vocabulary but differed in actual relevance, a concrete illustration
+  of retrieval precision loss in a real (if small) corpus.
